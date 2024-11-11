@@ -9,6 +9,82 @@
 
 using namespace std;
 
+class dllnode
+{
+public:
+    char data;
+    dllnode *next;
+    dllnode *prev ;
+    explicit dllnode(const char n = ''): data(n), next(nullptr), prev(nullptr)
+    {}
+};
+
+class dll // head
+{
+public:
+    dllnode *head = nullptr;
+    dllnode *tail = nullptr;
+    void insert(const char d)
+    {
+        // Adds a song to the end of a head
+        dllnode *temp = new dllnode(d);
+        if (head == nullptr)
+        {
+            head = temp;
+            tail = temp;
+            temp->next = nullptr;
+            temp->prev = nullptr;
+        }
+        else
+        {
+            // insertion at the end
+            tail->next = temp;
+            temp->prev = tail;
+            tail = temp;
+        }
+    }
+    void removesong(const char d, const int i = -1)
+    {
+        if(i == -1)         //delete from last
+        {
+            dllnode *temp = tail->prev;
+            delete tail;
+            tail = temp;
+        }
+        else
+        {
+            const dllnode *temp2 = head;
+            while (temp2 != nullptr && temp2->data != d)
+                temp2 = temp2->next;
+            if (temp2 == nullptr)
+                return;
+            temp2->prev->next = temp2->next;
+            temp2->next->prev = temp2->prev;
+            delete temp2;
+        }
+    }
+    string get_as_string() const            // returns whole DLL as a single string
+    {
+        const dllnode *temp = head;
+        string content;
+        while (temp != nullptr)
+        {
+            content += temp->data;
+            temp = temp->next;
+        }
+        return content;
+    }
+    ~dll()
+    {
+        while (head != nullptr)
+        {
+            dllnode *temp = head;
+            head = head->next;
+            delete temp;
+        }
+    }
+};
+
 template <class T>
 class BST_Node
 {
@@ -26,101 +102,34 @@ class BST_Node
     }
 };
 
-// A stack class for Preorder Traversals, (it's done using a stack)
-template <class T>
-class S_node
-{
-public:
-    T* data;
-    S_node* next;
-
-    explicit S_node(T*& d): next(nullptr)
-    {
-        data = d;
-    }
-};
-
-template <class T>
-class Stack
-{
-public:
-    S_node<T>* head;
-
-    explicit Stack(): head(nullptr)
-    {
-    }
-
-    bool is_empty() const
-    {
-        return head == nullptr;
-    }
-
-    void push(T* data)
-    {
-        S_node<T>* n = new S_node<T>(data);
-        n->next = head;
-        head = n;
-    }
-
-    T* pop()
-    {
-        if (is_empty())
-            return nullptr;
-        const S_node<T>* temp = head;
-        T* temp2 = head->data;
-        head = head->next;
-        delete temp;
-        return temp2;
-    }
-
-    void delete_stack()
-    {
-        while (head != nullptr)
-        {
-            const S_node<T>* temp = head;
-            head = head->next;
-            delete temp;
-        }
-    }
-
-    ~Stack()
-    {
-        delete_stack();
-    }
-};
-
-template <class T>
 class Q_node
 {
 public:
-    T* data;
+    char data;
     Q_node* next;
 
-    explicit Q_node(T*& d): next(nullptr)
-    {
-        data = d;
-    }
+    explicit Q_node(const char d = ''):data(d), next(nullptr)
+    {}
 };
 
 template <class T>
 class Queue
 {
 public:
-    Q_node<T>* head;
-    Q_node<T>* tail;
+    Q_node* head;
+    Q_node* tail;
 
     explicit Queue(): head(nullptr), tail(nullptr)
-    {
-    }
+    {}
 
     bool is_empty() const
     {
         return head == nullptr;
     }
 
-    void enqueue(T* data)
+    void enqueue(T data)
     {
-        Q_node<T>* n = new Q_node<T>(data);
+        Q_node* n = new Q_node(data);
         if (is_empty())
             head = tail = n;
         else
@@ -130,32 +139,28 @@ public:
         }
     }
 
-    T* dequeue()
+    void dequeue()
     {
         if (is_empty())
-            return nullptr;
-        const Q_node<T>* temp = head;
-        T* temp2 = head->data;
+            return;
+        const Q_node* temp = head;
         head = head->next;
         delete temp;
-        return temp2;
     }
 
     void delete_queue()
     {
         while (head != nullptr)
         {
-            const Q_node<T>* temp = head;
+            const Q_node* temp = head;
             head = head->next;
             delete temp;
         }
     }
-
-    T get_head()
+    char get_head() const
     {
-        return *head;
+        return head->data;
     }
-
     ~Queue()
     {
         delete_queue();
@@ -271,20 +276,21 @@ public:
         return root_ptr;
     }
 
-    // a function which accepts an allias of a pointer and if that ptr is null at the end, it means no node was found
-    void search(T*& node_ptr, string p_key) const
-    // Functions accepts a nullptr and if that nullptr is not null at the end of the function it means node was found
+    // a function which accepts an allias of a pointer and if that ptr is nullptr at the end, it means no node was found
+    bool search(T*& node_ptr, string p_key) const
+    // Functions accepts a nullptr and if that nullptr is not nullptr at the end of the function it means node was found
     {
         node_ptr = root;
         while (node_ptr != nullptr)
         {
             if (node_ptr->get_id() == p_key)
-                return;
+                return true;
             if (p_key < node_ptr->get_id())
                 node_ptr = node_ptr->left;
             else
                 node_ptr = node_ptr->right;
         }
+        return false;
     }
 
     T* delete_node(T*& root_ptr, string p_key)
