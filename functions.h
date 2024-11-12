@@ -8,6 +8,8 @@
 #include <fstream>
 #include <iostream>
 #include "classes.h"
+#include <curses.h>
+#include <stack>
 
 using namespace std;
 
@@ -27,7 +29,6 @@ inline void prepare_bst(BST<BST_Node<string>> *&bst)
     }
     dict.close();
     bst->update_levels(bst->root);
-    cout << "Dictionary AVL BST created" << endl;
 }
 
 void save_to_file(const dll& content)
@@ -42,11 +43,15 @@ void save_to_file(const dll& content)
     dict.close();
 }
 
-void load_from_file(dll& content)
+void load_from_file(dll& content,Stack<int_node>& st)
 {
-    string filename;
-    cout << "Enter File name(alongwith extension) to load from or the whole path(C:/Documents...): ";
-    cin >> filename;
+    char filename[100];
+    clear();
+    printw("Enter File name(alongwith extension) to load from or the whole path(C:/Documents...):");
+    refresh();
+    echo();
+    getstr(filename);
+    noecho();
     fstream read_file(filename, ios::in);
     if (!read_file.is_open())
     {
@@ -54,9 +59,34 @@ void load_from_file(dll& content)
         return;
     }
     char ch;
+    int counter = st.get_last_x();
+    st.pop();
     while(read_file.get(ch))
+    {
+        if (ch == '\n')
+        {
+            st.push(int_node(counter));
+            counter = 0;
+        }
+        else
+        {
+            counter++;
+        }
         content.insert(ch);
+    }
     read_file.close();
+}
+
+void update_last_word(dll& content, const string& word)
+{
+    while(content.tail->data != ' ' && content.tail != nullptr)
+    {
+        content.remove();
+    }
+    for(int i = 0; i < word.length(); i++)
+    {
+        content.insert(word[i]);
+    }
 }
 
 string substitution(BST<BST_Node<string>> *&bst,const string& word)
@@ -140,8 +170,4 @@ string get_suitable_word(const string& word,BST<BST_Node<string>> *&bst,const in
     }
     return new_word;
 }
-
-string undo();
-
-
 #endif //FUNCTIONS_H

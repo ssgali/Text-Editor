@@ -13,21 +13,28 @@ class dllnode
 {
 public:
     char data;
-    dllnode *next;
-    dllnode *prev ;
-    explicit dllnode(const char n = ''): data(n), next(nullptr), prev(nullptr)
-    {}
+    dllnode* next;
+    dllnode* prev;
+
+    explicit dllnode(const char n = ' '): data(n), next(nullptr), prev(nullptr)
+    {
+    }
 };
 
 class dll // head
 {
 public:
-    dllnode *head = nullptr;
-    dllnode *tail = nullptr;
+    dllnode* head;
+    dllnode* tail;
+
+    dll(): head(nullptr), tail(nullptr)
+    {
+    }
+
     void insert(const char d)
     {
         // Adds a song to the end of a head
-        dllnode *temp = new dllnode(d);
+        dllnode* temp = new dllnode(d);
         if (head == nullptr)
         {
             head = temp;
@@ -43,29 +50,52 @@ public:
             tail = temp;
         }
     }
-    void removesong(const char d, const int i = -1)
+
+    void remove(const char d = ' ', const int i = -1)
     {
-        if(i == -1)         //delete from last
+        if (head == nullptr)
+            return;
+
+        if (i == -1)
         {
-            dllnode *temp = tail->prev;
-            delete tail;
-            tail = temp;
+            if (head == tail)
+            {
+                delete tail;
+                head = tail = nullptr;
+            }
+            else
+            {
+                dllnode* temp = tail->prev;
+                delete tail;
+                tail = temp;
+                tail->next = nullptr;
+            }
         }
         else
         {
-            const dllnode *temp2 = head;
+            dllnode* temp2 = head;
             while (temp2 != nullptr && temp2->data != d)
                 temp2 = temp2->next;
+
             if (temp2 == nullptr)
                 return;
-            temp2->prev->next = temp2->next;
-            temp2->next->prev = temp2->prev;
+            if (temp2->prev != nullptr)
+                temp2->prev->next = temp2->next;
+            else
+                head = temp2->next;
+
+            if (temp2->next != nullptr)
+                temp2->next->prev = temp2->prev;
+            else
+                tail = temp2->prev;
+
             delete temp2;
         }
     }
-    string get_as_string() const            // returns whole DLL as a single string
+
+    string get_as_string() const // returns whole DLL as a single string
     {
-        const dllnode *temp = head;
+        const dllnode* temp = head;
         string content;
         while (temp != nullptr)
         {
@@ -74,11 +104,12 @@ public:
         }
         return content;
     }
+
     ~dll()
     {
         while (head != nullptr)
         {
-            dllnode *temp = head;
+            dllnode* temp = head;
             head = head->next;
             delete temp;
         }
@@ -88,39 +119,115 @@ public:
 template <class T>
 class BST_Node
 {
-    public:
+public:
     T data;
     int height;
     int level;
     BST_Node* left;
     BST_Node* right;
-    explicit BST_Node(T d = "") : data(d),height(0),level(0), left(nullptr), right(nullptr)
-    {}
+
+    explicit BST_Node(T d = "") : data(d), height(0), level(0), left(nullptr), right(nullptr)
+    {
+    }
+
     T get_id()
     {
         return data;
     }
 };
 
-class Q_node
+class D_node
 {
 public:
     char data;
-    Q_node* next;
+    D_node* next;
 
-    explicit Q_node(const char d = ''):data(d), next(nullptr)
-    {}
+    explicit D_node(const char d = ' '): data(d), next(nullptr)
+    {
+    }
+};
+
+class int_node
+{
+public:
+    int data;
+    int_node* next;
+
+    explicit int_node(const int d = 0): data(d), next(nullptr)
+    {
+    }
+};
+
+template <class T>
+class Stack
+{
+public:
+    T* head;
+
+    explicit Stack(): head(nullptr)
+    {
+    }
+
+    bool is_empty() const
+    {
+        return head == nullptr;
+    }
+
+    void push(T data)
+    {
+        T* n = new T(data);
+        n->next = head;
+        head = n;
+    }
+
+    void pop()
+    {
+        if (is_empty())
+            return;
+        const T* temp = head;
+        head = head->next;
+        delete temp;
+    }
+
+    char get_top()
+    {
+        if(is_empty())
+            return ' ';
+        return head->data;
+    }
+    int get_last_x()
+    {
+        if(is_empty())
+            return 0;
+        return head->data;
+    }
+
+    void delete_stack()
+    {
+        while (head != nullptr)
+        {
+            const T* temp = head;
+            head = head->next;
+            delete temp;
+        }
+    }
+
+    ~Stack()
+    {
+        delete_stack();
+    }
 };
 
 template <class T>
 class Queue
 {
 public:
-    Q_node* head;
-    Q_node* tail;
+    D_node* head;
+    D_node* tail;
 
     explicit Queue(): head(nullptr), tail(nullptr)
-    {}
+    {
+    }
 
     bool is_empty() const
     {
@@ -129,7 +236,7 @@ public:
 
     void enqueue(T data)
     {
-        Q_node* n = new Q_node(data);
+        D_node* n = new D_node(data);
         if (is_empty())
             head = tail = n;
         else
@@ -143,7 +250,7 @@ public:
     {
         if (is_empty())
             return;
-        const Q_node* temp = head;
+        const D_node* temp = head;
         head = head->next;
         delete temp;
     }
@@ -152,15 +259,28 @@ public:
     {
         while (head != nullptr)
         {
-            const Q_node* temp = head;
+            const D_node* temp = head;
             head = head->next;
             delete temp;
         }
+    }
+
+    string get_word_as_string() const
+    {
+        string word = "";
+        D_node* temp = head;
+        while (temp != nullptr)
+        {
+            word += temp->data;
+            temp = temp->next;
+        }
+        return word;
     }
     char get_head() const
     {
         return head->data;
     }
+
     ~Queue()
     {
         delete_queue();
