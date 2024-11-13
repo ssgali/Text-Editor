@@ -5,6 +5,7 @@
 #ifndef CLASSES_H
 #define CLASSES_H
 
+#include <curses.h>
 #include <iostream>
 
 using namespace std;
@@ -233,7 +234,17 @@ public:
     {
         return head == nullptr;
     }
-
+    void delete_from_end()
+    {
+        if(is_empty())
+            return;
+        D_node* temp = head;
+        while (temp && temp->next != tail)
+            temp = temp->next;
+        delete tail;
+        tail = temp;
+        tail->next = nullptr;
+    }
     void enqueue(T data)
     {
         D_node* n = new D_node(data);
@@ -267,7 +278,7 @@ public:
 
     string get_word_as_string() const
     {
-        string word = "";
+        string word;
         D_node* temp = head;
         while (temp != nullptr)
         {
@@ -278,6 +289,8 @@ public:
     }
     char get_head() const
     {
+        if (head->next == nullptr)
+            return ' ';
         return head->data;
     }
 
@@ -397,10 +410,9 @@ public:
     }
 
     // a function which accepts an allias of a pointer and if that ptr is nullptr at the end, it means no node was found
-    bool search(T*& node_ptr, string p_key) const
-    // Functions accepts a nullptr and if that nullptr is not nullptr at the end of the function it means node was found
+    bool search(string p_key) const
     {
-        node_ptr = root;
+        T* node_ptr = root;
         while (node_ptr != nullptr)
         {
             if (node_ptr->get_id() == p_key)

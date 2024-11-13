@@ -79,7 +79,7 @@ void load_from_file(dll& content,Stack<int_node>& st)
 
 void update_last_word(dll& content, const string& word)
 {
-    while(content.tail->data != ' ' && content.tail != nullptr)
+    while(content.tail != nullptr && content.tail->data != ' ')
     {
         content.remove();
     }
@@ -91,15 +91,16 @@ void update_last_word(dll& content, const string& word)
 
 string substitution(BST<BST_Node<string>> *&bst,const string& word)
 {
-    string new_word = word;             // word size * 26 = k*26
+    string new_word = word;                     // word size * 26 = k*26
     for (int j = 0; j < word.size(); j++)
     {
         for(int i = 0; i < 26; i++)
         {
             new_word[j] = 'a' + i;
-            if(bst->search(bst->root,new_word))
+            if(bst->search(new_word))
                 return new_word;
         }
+        new_word[j] = word[j];
     }
     return word;
 }
@@ -111,7 +112,7 @@ string omission(BST<BST_Node<string>> *&bst,const string& word)
     for(int i = 0; i < modifications; i++)
     {
         new_word.erase(i,1);
-        if(bst->search(bst->root,new_word))
+        if(bst->search(new_word))
             return new_word;
         new_word = word;
     }
@@ -127,7 +128,7 @@ string insertion(BST<BST_Node<string>> *&bst,const string& word)
         for(int i = 0; i < 26; i++)
         {
             new_word.insert(j,1,'a' + i);
-            if(bst->search(bst->root,new_word))
+            if(bst->search(new_word))
                 return new_word;
             new_word = word;
         }
@@ -142,7 +143,7 @@ string reversal(BST<BST_Node<string>> *&bst,const string& word)
     for(int i = 0; i < modifications; i++)
     {
         swap(new_word[i],new_word[i+1]);
-        if(bst->search(bst->root,new_word))
+        if(bst->search(new_word))
             return new_word;
         new_word = word;
     }
@@ -151,23 +152,13 @@ string reversal(BST<BST_Node<string>> *&bst,const string& word)
 
 string get_suitable_word(const string& word,BST<BST_Node<string>> *&bst,const int choice)
 {
-    string new_word;
     if (choice == 1)
-    {
-        new_word = substitution(bst,word);
-    }
-    else if (choice == 2)
-    {
-        new_word = omission(bst,word);
-    }
-    else if (choice == 3)
-    {
-        new_word = insertion(bst,word);
-    }
-    else if (choice == 4)
-    {
-        new_word = reversal(bst,word);
-    }
-    return new_word;
+        return substitution(bst,word);
+    if (choice == 2)
+        return omission(bst,word);
+    if (choice == 3)
+        return insertion(bst,word);
+    if (choice == 4)
+        return reversal(bst,word);
 }
 #endif //FUNCTIONS_H

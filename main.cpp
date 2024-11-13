@@ -10,6 +10,10 @@ int initialize_window()
     initscr(); // Initialize the screen
     cbreak(); // Disable line buffering
     echo(); // Disable echo to allow manual character handling
+    start_color();
+    init_pair(1, COLOR_RED, COLOR_BLACK);
+    init_pair(2, COLOR_GREEN, COLOR_BLACK);
+    init_pair(3, COLOR_WHITE, COLOR_BLACK);
     keypad(stdscr, TRUE); // Enable arrow keys and other special keys
     // Instructions
     mvprintw(0, 0, "Simple Notepad-like Program - Press ESC to exit");
@@ -18,7 +22,6 @@ int initialize_window()
     mvprintw(7, 0, "2. Omission Technique");
     mvprintw(8, 0, "3. Insertion Technique");
     mvprintw(9, 0, "4. Reversal Technique");
-    getch();
     mvprintw(10, 0, "Your Choice: ");
     int ch = getch() - '0';
     clear();
@@ -37,21 +40,34 @@ int main()
     prepare_bst(tree);
     int ch;
     int x = 0, y = 0,bx = -1,by = -1;                               // Starting cursor position
-    int choice = initialize_window();
-    move(0,0);
-    while ((ch = getch()) != 27)
+    int choice = 0;
+    while(true)
     {
-        // 27 is the ASCII code for ESC
+        if(choice > 0 && choice < 5)
+            break;
+        choice = initialize_window();
+    }
+    move(0,0);
+    while ((ch = getch()) != 27)                    // ESC key ASCII
+    {
+        int distance = 0;                           // for getting the new words length
+        bool changed = false,edited = false;        // status of words changed
         if (ch == 8)
         {
             // Backspace
+            // if the cursor is missplaced on the screen
+            // place it back to the backup of x and y
             if(bx != -1)
                 x = bx;
             if(by != -1)
                 y = by;
             move(y, x);
+            // reseting x and y
             bx = by = -1;
+
+            // deleting from queue and linked list
             content.remove();
+            last_word.delete_from_end();
             if (x > 0)
             {
                 x--; // Move cursor back
@@ -64,6 +80,7 @@ int main()
                 prev_line_track.pop();
             }
         }
+        // Getting one time backup of Bx and By when any of the key is pressed
         else if (ch == KEY_LEFT)
         {
             if (bx == -1)
@@ -93,16 +110,10 @@ int main()
             // CTRL + S functionality
             save_to_file(content);
         }
-        else if (ch == 0x1A)
-        {
-            // Ctrl+Z Undo Functionality
-            printf("Z");
-        }
         else if (ch == 0x0C)
         {
             // Ctrl+L (ASCII 12)
-            int_node n(x);
-            prev_line_track.push(n);
+            prev_line_track.push(int_node(x));
             load_from_file(content,prev_line_track);
             by = bx = -1;
         }
@@ -111,25 +122,36 @@ int main()
             // Newline
             content.insert(ch);
             y++;
+            // pushing the x coordinates of x into stack so that when backspace is pressed
+            // we move it to that location of x by popping from stack
             prev_line_track.push(int_node(x));
             x = 0;
         }
         else
         {
+            // Setting positions to the front of the inserted character
             if(bx != -1)
                 x = bx;
             if(by != -1)
                 y = by;
             move(y, x);
             bx = by = -1;
+
+            // Handling the new insertion
             if(ch == ' ' && !last_word.is_empty())
             {
                 string word = last_word.get_word_as_string();
                 last_word.delete_queue();
-                if(!tree->search(tree->root,word))
+                if(!tree->search(word))
                 {
-                    word = get_suitable_word(word,tree,choice);
-                    update_last_word(content,word);
+                    edited = true;
+                    string new_word = get_suitable_word(word,tree,choice);
+                    if(new_word == word)
+                        changed = false;
+                    else
+                        changed = true;
+                    distance = new_word.length() + 1;
+                    update_last_word(content,new_word);
                 }
             }
             else if(ch != ' ')
@@ -140,10 +162,23 @@ int main()
             x++;
         }
         clear();
+        if(ch != KEY_LEFT && ch != KEY_RIGHT && ch != KEY_UP && ch != KEY_DOWN)
+            move(0,0);
         printw(content.get_as_string().c_str());
-        if(ch == 0x0C)
+        if(ch != KEY_LEFT && ch != KEY_RIGHT && ch != KEY_UP && ch != KEY_DOWN)
             getyx(stdscr, y, x);
         move(y, x); // Update cursor position
+        // changing the color of the new word inserted
+        if(edited)
+        {
+            move(y,x-distance);
+            if(changed)
+                chgat(distance, A_NORMAL, 2, nullptr);
+            else
+                chgat(distance, A_NORMAL, 1, nullptr);
+            move(y,x);
+            edited = false;
+        }
         refresh();
     }
     endwin(); // End curses mode
