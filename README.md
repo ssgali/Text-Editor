@@ -25,7 +25,7 @@ sudo apt install g++
 To compile the editor:
 
 ```bash
-g++ main.cpp -o text_editor
+g++ main.cpp -o text_editor -lpdcurses
 ```
 
 ### Running the Text Editor
@@ -46,9 +46,6 @@ Start the editor by running:
 
 Once running, use keyboard shortcuts to navigate and edit text. The program is designed to work with basic text editing functionality in mind.
 
-## Contributing
-
-Feel free to contribute by submitting issues, suggesting new features, or creating pull requests.
 
 ---
 
